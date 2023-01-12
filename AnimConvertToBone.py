@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Copy Object Animation to Bone Animation",
-    "author": "Your Name",
-    "version": (1, 0),
+    "author": "Yegor R. (Branskugel), chatGPT",
+    "version": (1, 1),
     "blender": (3, 4, 0),
     "location": "View3D > Tools > Copy Object Animation to Bone Animation",
     "description": "Copy object's animation over to bone animation",
