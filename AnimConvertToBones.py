@@ -3,7 +3,7 @@ bl_info = {
     "author": "RYM",
     "version": (1, 0, 1),
     "blender": (3, 4, 1),
-    "location": "View3D > Tools > Convert Object Animation to Bone Animation",
+    "location": "View3D > Animation > Convert Object Animation to Bone Animation",
     "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
     "warning": "",
     "doc_url": "",
