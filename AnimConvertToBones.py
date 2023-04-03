@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Convert Object Animation to Bone Animation",
     "author": "RYM",
-    "version": (1, 0, 1),
-    "blender": (3, 4, 1),
+    "version": (1, 0, 2),
+    "blender": (3, 5, 0),
     "location": "View3D > Animation > Convert Object Animation to Bone Animation",
     "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
     "warning": "",
@@ -86,14 +86,14 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
             
             # Copy animation
             if copy_location:
-                bpy.ops.pose.constraint_add(type='COPY_LOCATION')
+                bpy.ops.pose.constraint_add_with_targets(type='COPY_LOCATION')
                 bpy.context.object.pose.bones["%s"%bone_name].constraints["Copy Location"].target = obj
                 #bpy.context.object.pose.bones["%s"%bone_name].constraints["Copy Location"].head_tail = 0
             if copy_rotation:
-                bpy.ops.pose.constraint_add(type='COPY_ROTATION')
+                bpy.ops.pose.constraint_add_with_targets(type='COPY_ROTATION')
                 bpy.context.object.pose.bones["%s"%bone_name].constraints["Copy Rotation"].target = obj
             if copy_scale:
-                bpy.ops.pose.constraint_add(type='COPY_SCALE')
+                bpy.ops.pose.constraint_add_with_targets(type='COPY_SCALE')
                 bpy.context.object.pose.bones["%s"%bone_name].constraints["Copy Scale"].target = obj
 
 
