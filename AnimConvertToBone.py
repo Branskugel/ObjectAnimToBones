@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "Copy Object Animation to Bone Animation",
-    "author": "Yegor R. (Branskugel), chatGPT",
-    "version": (1, 1),
-    "blender": (3, 4, 0),
-    "location": "View3D > Tools > Copy Object Animation to Bone Animation",
-    "description": "Copy object's animation over to bone animation",
+    "name": "Convert Object Animation to Bone Animation",
+    "author": "RYM",
+    "version": (1, 0, 1),
+    "blender": (3, 4, 1),
+    "location": "View3D > Tools > Convert Object Animation to Bone Animation",
+    "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
     "warning": "",
     "doc_url": "",
     "category": "Object",
@@ -17,8 +17,8 @@ from mathutils import Vector
 class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Copy Object Animation to Bone Animation"
-    bl_category = "Tools"
+    bl_label = "Convert Object Animation to Bone Animation"
+    bl_category = "Animation"
 
     def draw(self, context):
         layout = self.layout
@@ -33,7 +33,7 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
 
 class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
     bl_idname = "object.copy_animation_to_bone"
-    bl_label = "Copy Object Animation to Bone Animation"
+    bl_label = "Convert Object Animation to Bone Animation"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -70,10 +70,12 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
             edbone.head = Vector((0.0, 0.0, 0.0))
             edbone.tail = Vector((0.0, 1.0, 0.0))
             edbone.roll = 0 
-                
+    
+            
             #Exiting Edit mode
             bpy.ops.object.mode_set(mode='OBJECT')
             armature_obj.show_in_front = True
+
 
             bpy.ops.object.mode_set(mode='POSE')
             
@@ -101,8 +103,26 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
             vertex_group = obj.vertex_groups.new(name=bone_name)
             for vert in obj.data.vertices:
                 vertex_group.add([vert.index], 1.0, 'ADD')
-                
+
+
+            
+            # Create armature modifier
+            #armature_obj.data.pose_position = 'REST'
+            #obj.parent = armature_obj
+            #obj.parent_type = 'ARMATURE'
+
+
+            #bpy.context.scene.frame_set(bpy.context.scene.frame_current)
+            
             armatures.append(armature_obj)
+            #vertex_groups[obj.name] = vertex_group
+
+
+        # Combine all armatures into one
+        #bpy.ops.object.select_all(action='DESELECT')
+            #for arm in armatures:
+                #arm.select_set(True)
+                #context.view_layer.objects.active = arm
 
         bpy.ops.object.select_all(action='DESELECT')
 
@@ -144,6 +164,7 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
                 if obj.rigid_body:
                     context.view_layer.objects.active = obj
                     bpy.ops.rigidbody.object_remove()
+                    #bpy.context.collection.rigidbody_world.collection.objects.unlink(obj)
                 if copy_location:
                     obj.location = [0,0,0]
                 if copy_rotation:
@@ -159,6 +180,7 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
 
 
         # Clear object animation
+        #bpy.ops.object.select_all(action='DESELECT')
         for obj in objs:
             obj.animation_data_clear()
             if copy_location:
@@ -169,11 +191,31 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
                 obj.scale = [1,1,1]
             armature_mod = obj.modifiers.new(type='ARMATURE', name='ConvertToBone')
             armature_mod.object = obj.parent
+            #armature_mod.show_viewport = False
+            #obj.modifiers['ConvertToBone'].show_viewport = True
+            #context.view_layer.objects.active = obj
+            #obj.select_set(False)
             if join_objects:
                 context.view_layer.objects.active = obj
                 obj.select_set(True)
         if join_objects:
             bpy.ops.object.join()
+            
+
+        """
+
+        #if combine_armatures:
+        #for arm in armatures:
+            #armatures[0].data.pose_position = 'POSE'
+            #arm.select_set(False)
+            
+
+        #for mod in mods:
+            #mod.show_viewport = True
+
+        #bpy.ops.object.select_all(action='DESELECT')
+
+        """
 
         return {'FINISHED'}
 
