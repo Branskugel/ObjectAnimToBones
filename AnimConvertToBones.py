@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Convert Object Animation to Bone Animation",
     "author": "RYM",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (3, 5, 0),
     "location": "View3D > Animation > Convert Object Animation to Bone Animation",
     "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
@@ -14,7 +14,7 @@ import bpy, mathutils
 from bpy.types import Panel
 from mathutils import Vector 
 
-class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
+class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Convert Object Animation to Bone Animation"
@@ -23,7 +23,7 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.operator("object.copy_animation_to_bone", text="Run")
+        col.operator("object.convert_animation_to_bone", text="Run")
         col.prop(context.scene, "join_objects")
         col.prop(context.scene, "combine_armatures")
         col.prop(context.scene, "copy_location")
@@ -31,8 +31,8 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
         col.prop(context.scene, "copy_scale")
         col.prop(context.scene, "frm_step")
 
-class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
-    bl_idname = "object.copy_animation_to_bone"
+class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
+    bl_idname = "object.convert_animation_to_bone"
     bl_label = "Convert Object Animation to Bone Animation"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -220,8 +220,8 @@ class COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    bpy.utils.register_class(COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel)
-    bpy.utils.register_class(COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator)
+    bpy.utils.register_class(CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel)
+    bpy.utils.register_class(CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator)
     bpy.types.Scene.join_objects = bpy.props.BoolProperty(default=False)
     bpy.types.Scene.combine_armatures = bpy.props.BoolProperty(default=False)
     bpy.types.Scene.copy_location = bpy.props.BoolProperty(default=True)
@@ -230,8 +230,8 @@ def register():
     bpy.types.Scene.frm_step = bpy.props.IntProperty(name="Baking frame step", default=1, min=1)
 
 def unregister():
-    bpy.utils.unregister_class(COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel)
-    bpy.utils.unregister_class(COPY_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator)
+    bpy.utils.unregister_class(CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel)
+    bpy.utils.unregister_class(CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator)
     del bpy.types.Scene.join_objects
     del bpy.types.Scene.combine_armatures
     del bpy.types.Scene.copy_location
