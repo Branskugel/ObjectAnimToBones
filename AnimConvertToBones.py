@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Convert Object Animation to Bone Animation",
     "author": "RYM",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     "blender": (3, 5, 0),
     "location": "View3D > Animation > Convert Object Animation to Bone Animation",
     "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
@@ -75,6 +75,9 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
             #Exiting Edit mode
             bpy.ops.object.mode_set(mode='OBJECT')
             armature_obj.show_in_front = True
+            oloc = obj.location
+            orot = obj.rotation_euler
+            oscale = obj.scale
 
 
             bpy.ops.object.mode_set(mode='POSE')
@@ -82,6 +85,15 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
             bone = bpy.context.object.data.bones["%s"%bone_name]
             bpy.context.object.data.bones.active = bone
             bpy.context.object.data.bones.active.select = True
+            bpy.context.active_pose_bone.rotation_mode = 'XYZ'
+            if copy_location:
+                bpy.context.active_pose_bone.location = oloc
+            if copy_rotation:
+                bpy.context.active_pose_bone.rotation_euler = orot
+            if copy_scale:
+                bpy.context.active_pose_bone.scale = oscale
+            bpy.ops.pose.armature_apply(selected=False)
+
 
             
             # Copy animation
@@ -142,13 +154,15 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
                 if obj.rigid_body:
                     context.view_layer.objects.active = obj
                     bpy.ops.rigidbody.object_remove()
+                    #bpy.ops.object.transform_apply(location=copy_location, rotation=copy_rotation, scale=copy_scale)
+
                     #bpy.context.collection.rigidbody_world.collection.objects.unlink(obj)
-                if copy_location:
-                    obj.location = [0,0,0]
-                if copy_rotation:
-                    obj.rotation_euler = [0,0,0]
-                if copy_scale:
-                    obj.scale = [1,1,1]
+                # if copy_location:
+                #     obj.location = [0,0,0]
+                # if copy_rotation:
+                #     obj.rotation_euler = [0,0,0]
+                # if copy_scale:
+                #     obj.scale = [1,1,1]
                 obj.parent = parent_arm
                 obj.parent_type = 'OBJECT'
             parent_arm.data.pose_position = 'POSE'
@@ -164,13 +178,15 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
                 if obj.rigid_body:
                     context.view_layer.objects.active = obj
                     bpy.ops.rigidbody.object_remove()
+                    #bpy.ops.object.transform_apply(location=copy_location, rotation=copy_rotation, scale=copy_scale)
+                    
                     #bpy.context.collection.rigidbody_world.collection.objects.unlink(obj)
-                if copy_location:
-                    obj.location = [0,0,0]
-                if copy_rotation:
-                    obj.rotation_euler = [0,0,0]
-                if copy_scale:
-                    obj.scale = [1,1,1]
+                # if copy_location:
+                #     obj.location = [0,0,0]
+                # if copy_rotation:
+                #     obj.rotation_euler = [0,0,0]
+                # if copy_scale:
+                #     obj.scale = [1,1,1]
                 obj.parent = arm
                 obj.parent_type = 'OBJECT'
             for arm in armatures:
@@ -183,21 +199,21 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
         #bpy.ops.object.select_all(action='DESELECT')
         for obj in objs:
             obj.animation_data_clear()
-            if copy_location:
-                obj.location = [0,0,0]
-            if copy_rotation:
-                obj.rotation_euler = [0,0,0]
-            if copy_scale:
-                obj.scale = [1,1,1]
+            # if copy_location:
+            #     obj.location = [0,0,0]
+            # if copy_rotation:
+            #     obj.rotation_euler = [0,0,0]
+            # if copy_scale:
+            #     obj.scale = [1,1,1]
+            obj.select_set(True)
+            context.view_layer.objects.active = obj
+            bpy.ops.object.transform_apply(location=copy_location, rotation=copy_rotation, scale=copy_scale)
             armature_mod = obj.modifiers.new(type='ARMATURE', name='ConvertToBone')
             armature_mod.object = obj.parent
             #armature_mod.show_viewport = False
             #obj.modifiers['ConvertToBone'].show_viewport = True
             #context.view_layer.objects.active = obj
             #obj.select_set(False)
-            if join_objects:
-                context.view_layer.objects.active = obj
-                obj.select_set(True)
         if join_objects:
             bpy.ops.object.join()
             
