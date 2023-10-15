@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Convert Object Animation to Bone Animation",
     "author": "RYM",
-    "version": (1, 0, 5),
-    "blender": (3, 5, 0),
+    "version": (1, 0, 6),
+    "blender": (3, 5, 1),
     "location": "View3D > Animation > Convert Object Animation to Bone Animation",
     "description": "Provides a functionality to automate conversion of object's animation to bone animation. Objects' transforms are reset afterwards.",
     "warning": "",
@@ -29,6 +29,8 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_PT_panel(Panel):
         col.prop(context.scene, "copy_location")
         col.prop(context.scene, "copy_rotation")
         col.prop(context.scene, "copy_scale")
+        col.prop(context.scene, "frm_start")
+        col.prop(context.scene, "frm_end")
         col.prop(context.scene, "frm_step")
 
 class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator):
@@ -42,7 +44,9 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
         copy_location = context.scene.copy_location
         copy_rotation = context.scene.copy_rotation
         copy_scale = context.scene.copy_scale
-        frm_step = context.scene.frm_step
+        frm_start = bpy.context.scene.frame_start
+        frm_end = bpy.context.scene.frame_end
+        frm_step = context.scene.frame_step
 
         armatures = []
         #vertex_groups = {}
@@ -53,10 +57,15 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
             if obj.type != 'MESH':
                 continue
 
-            # Create armature and bone
+            #Creating armature
             armature = bpy.data.armatures.new(obj.name + "_armature")
             armature_obj = bpy.data.objects.new(obj.name + "_armature_obj", armature)
             bpy.context.scene.collection.objects.link(armature_obj)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            armature_obj.show_in_front = True
+            oloc = obj.location
+            orot = obj.rotation_euler
+            oscale = obj.scale
             
             #Setting the armature as active object
             bpy.context.view_layer.objects.active = armature_obj
@@ -64,7 +73,7 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
             #Entering Edit mode
             bpy.ops.object.mode_set(mode='EDIT')
             
-            #adding the bone
+            #Adding a bone
             bone_name = str(obj.name + "_bone")
             edbone = armature.edit_bones.new("%s"%bone_name)
             edbone.head = Vector((0.0, 0.0, 0.0))
@@ -72,14 +81,7 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
             edbone.roll = 0 
     
             
-            #Exiting Edit mode
-            bpy.ops.object.mode_set(mode='OBJECT')
-            armature_obj.show_in_front = True
-            oloc = obj.location
-            orot = obj.rotation_euler
-            oscale = obj.scale
-
-
+            #Entering Pose mode to set new pose as rest pose - since a bit more convenient
             bpy.ops.object.mode_set(mode='POSE')
             
             bone = bpy.context.object.data.bones["%s"%bone_name]
@@ -119,16 +121,18 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
 
         bpy.ops.object.select_all(action='DESELECT')
 
+        #Object loop 1 - DONE^
                 
-        if combine_armatures:
+        if combine_armatures or join_objects:
             for arm in armatures:
                 arm.select_set(True)
-                context.view_layer.objects.active = arm
+            
+            context.view_layer.objects.active = armatures[0]
             bpy.ops.object.join()
-            bpy.ops.nla.bake(frame_start = bpy.context.scene.frame_start, frame_end = bpy.context.scene.frame_end, step = frm_step, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=True, bake_types={'POSE'})
+            bpy.ops.nla.bake(frame_start = frm_start, frame_end = frm_end, step = frm_step, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=True, bake_types={'POSE'})
             parent_arm = context.view_layer.objects.active
             armatures.clear()
-            armatures.append(parent_arm)
+            #armatures.append(parent_arm)
             parent_arm.data.pose_position = 'REST'
             # Parent object to armature
             for obj in objs:
@@ -143,7 +147,7 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
         else:
             for arm in armatures:
                 arm.select_set(True)
-                bpy.ops.nla.bake(frame_start = bpy.context.scene.frame_start, frame_end = bpy.context.scene.frame_end, step = frm_step, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=True, bake_types={'POSE'})
+                bpy.ops.nla.bake(frame_start = frm_start, frame_end = frm_end, step = frm_step, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=True, bake_types={'POSE'})
                 arm.data.pose_position = 'REST'
                 # Parent object to armature
             for obj in objs:
@@ -176,6 +180,8 @@ def register():
     bpy.types.Scene.copy_location = bpy.props.BoolProperty(default=True)
     bpy.types.Scene.copy_rotation = bpy.props.BoolProperty(default=True)
     bpy.types.Scene.copy_scale = bpy.props.BoolProperty(default=True)
+    bpy.types.Scene.frm_start = bpy.props.IntProperty(name="Baking range start", default=1, min=0)
+    bpy.types.Scene.frm_end = bpy.props.IntProperty(name="Baking range end", default=250, min=1)
     bpy.types.Scene.frm_step = bpy.props.IntProperty(name="Baking frame step", default=1, min=1)
 
 def unregister():
@@ -186,6 +192,8 @@ def unregister():
     del bpy.types.Scene.copy_location
     del bpy.types.Scene.copy_rotation
     del bpy.types.Scene.copy_scale
+    del bpy.types.Scene.frm_start
+    del bpy.types.Scene.frm_end
     del bpy.types.Scene.frm_step
 
 if __name__ == "__main__":
