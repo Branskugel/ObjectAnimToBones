@@ -44,9 +44,9 @@ class CONVERT_OBJECT_ANIMATION_TO_BONE_ANIMATION_OT_operator(bpy.types.Operator)
         copy_location = context.scene.copy_location
         copy_rotation = context.scene.copy_rotation
         copy_scale = context.scene.copy_scale
-        frm_start = bpy.context.scene.frame_start
-        frm_end = bpy.context.scene.frame_end
-        frm_step = context.scene.frame_step
+        frm_start = bpy.context.scene.frm_start
+        frm_end = bpy.context.scene.frm_end
+        frm_step = context.scene.frm_step
 
         armatures = []
         #vertex_groups = {}
